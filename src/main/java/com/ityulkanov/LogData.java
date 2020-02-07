@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * Holds all the data from single log entry
+ * Holds all the data from single log entry.
  */
 @Data
 @AllArgsConstructor
