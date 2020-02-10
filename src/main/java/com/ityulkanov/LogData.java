@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class LogData implements Comparable<LogData> {
     private final LocalDateTime date;
-    private final String type;
 
     @Override
     public int compareTo(LogData o) {

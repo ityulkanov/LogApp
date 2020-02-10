@@ -1,6 +1,8 @@
 package com.ityulkanov;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,15 +47,17 @@ final class LogUtils {
     private static List<LogData> generateLogList() {
         List<LogData> logList = new ArrayList<>();
         for (File file : LogUtils.getResourceFolderFiles(Constants.FOLDER_NAME)) {
-            final Scanner input = new Scanner(file);
-            while (input.hasNext()) {
-                final String s = input.nextLine();
-                final String[] logInput = s.split(Constants.LOG_SPLITTER);
-                final LocalDateTime logDate = convertDate(logInput[0]);
-                LogData logData;
-                if (logInput[1].equals(Constants.LOG_LEVEL)) {
-                    logData = new LogData(logDate, logInput[1]);
-                    logList.add(logData);
+            try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+                String line = bufferedReader.readLine();
+                while (line != null) {
+                    final String[] logInput = line.split(Constants.LOG_SPLITTER);
+                    final LocalDateTime logDate = convertDate(logInput[0]);
+                    LogData logData;
+                    if (logInput[1].equals(Constants.LOG_LEVEL)) {
+                        logData = new LogData(logDate);
+                        logList.add(logData);
+                    }
+                    line = bufferedReader.readLine();
                 }
             }
         }

@@ -17,7 +17,7 @@ class LogUtilsTest {
     void setUp() {
         this.localDateTime = LocalDateTime.parse(DATE_SAMPLE,
                 DateTimeFormatter.ofPattern(Constants.PARSER_FORMAT));
-        logData = new LogData(localDateTime, LOGGER_LEVEL);
+        logData = new LogData(localDateTime);
     }
 
     @org.junit.jupiter.api.Test
