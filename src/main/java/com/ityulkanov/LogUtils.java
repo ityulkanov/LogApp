@@ -71,7 +71,6 @@ final class LogUtils {
      * @return frequency map by hour
      */
     private static Map<LogData, Integer> generateStatsByHour(final List<LogData> logList) {
-
         int counter = 1;
         final Map<LogData, Integer> tempMap = new LinkedHashMap<>();
         for (int i = 0; i < logList.size(); i++) {
@@ -134,14 +133,14 @@ final class LogUtils {
      */
     private static void writeToFile(Map<LogData, Integer> tempMap, String timeFrameChosen) throws IOException {
         final FileWriter writer = new FileWriter(Constants.FILE_NAME, true);
-        String pattern =(timeFrameChosen.equals(Constants.MINUTE_PICKER)) ? Constants.MINUTE_FORMAT : Constants.HOUR_FORMAT;
+        String pattern = (timeFrameChosen.equals(Constants.MINUTE_PICKER)) ? Constants.MINUTE_FORMAT : Constants.HOUR_FORMAT;
         for (Map.Entry<LogData, Integer> e : tempMap.entrySet()) {
             final String displayDate = e.getKey().getDate().format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT));
             final String timestamp = e.getKey().getDate().format(DateTimeFormatter.ofPattern(pattern));
             String timestampPlusOne = "";
             if (timeFrameChosen.equals(Constants.MINUTE_PICKER)) {
                 timestampPlusOne = e.getKey().getDate().plusMinutes(1).format(DateTimeFormatter.ofPattern(pattern));
-            } else if(timeFrameChosen.equals(Constants.HOUR_PICKER)) {
+            } else if (timeFrameChosen.equals(Constants.HOUR_PICKER)) {
                 timestampPlusOne = e.getKey().getDate().plusHours(1).format(DateTimeFormatter.ofPattern(pattern));
             }
             final String data = displayDate + " " + timestamp + "-" + timestampPlusOne + " " + timeFrameChosen + ", количество ошибок " + e.getValue() + "\n";
