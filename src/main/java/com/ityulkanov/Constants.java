@@ -8,6 +8,7 @@ final class Constants {
     static String LOG_SPLITTER = ";";
     static String DATE_FORMAT = "yyyy-MM-dd";
     static String HOUR_FORMAT = "HH.00";
+    static String MINUTE_FORMAT = "mm.00";
     static final String HOUR_PICKER = "hour";
     static final String MINUTE_PICKER = "minute";
 

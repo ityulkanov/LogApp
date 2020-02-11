@@ -4,14 +4,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Map;
 
-import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 
@@ -26,16 +27,15 @@ final class LogUtils {
      *
      * @param timeFrameChosen generating file based on input by user
      */
-    @SneakyThrows
-    static void createStatisticsFile(final String timeFrameChosen) {
+    static void createStatisticsFile(final String timeFrameChosen) throws IOException {
         final List<LogData> logList = generateLogList();
-        final FileWriter writer = new FileWriter(Constants.FILE_NAME, true);
         Collections.sort(logList);
         if (timeFrameChosen.equals(Constants.HOUR_PICKER)) {
-            generateStatsByHour(logList, writer);
+            writeToFile(generateStatsByHour(logList), timeFrameChosen);
         } else if (timeFrameChosen.equals(Constants.MINUTE_PICKER)) {
-            generateStatsByMinute(logList, writer);
+            writeToFile(generateStatsByMinute(logList), timeFrameChosen);
         }
+
     }
 
     /**
@@ -43,8 +43,7 @@ final class LogUtils {
      *
      * @return List of LogData
      */
-    @SneakyThrows
-    private static List<LogData> generateLogList() {
+    private static List<LogData> generateLogList() throws IOException {
         List<LogData> logList = new ArrayList<>();
         for (File file : LogUtils.getResourceFolderFiles(Constants.FOLDER_NAME)) {
             try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
@@ -64,16 +63,17 @@ final class LogUtils {
         return logList;
     }
 
+
     /**
-     * Creates file for hourly stats.
+     * Generates frequency map by hour
      *
-     * @param logList list of all logs available for analysis
-     * @param writer  data storage
+     * @param logList
+     * @return frequency map by hour
      */
-    @SneakyThrows
-    private static void generateStatsByHour(final List<LogData> logList, final FileWriter writer) {
+    private static Map<LogData, Integer> generateStatsByHour(final List<LogData> logList) {
 
         int counter = 1;
+        final Map<LogData, Integer> tempMap = new LinkedHashMap<>();
         for (int i = 0; i < logList.size(); i++) {
             LogData logEntry = logList.get(i);
             if (i + 1 < logList.size()) {
@@ -84,25 +84,26 @@ final class LogUtils {
                         && currDate.getHour() == nextDate.getHour()) {
                     counter++;
                 } else {
-                    writeToFile(writer, counter, logEntry);
+                    tempMap.put(logEntry, counter);
                     counter = 1;
                 }
             } else {
-                writeToFile(writer, counter, logEntry);
+                tempMap.put(logEntry, counter);
             }
         }
-        writer.close();
+        return tempMap;
     }
 
+
     /**
-     * Create file for minutes stats.
+     * Generates frequency map by minute
      *
-     * @param logList list of all logs available for analysis
-     * @param writer  data storage
+     * @param logList
+     * @return frequency map by minute
      */
-    @SneakyThrows
-    private static void generateStatsByMinute(final List<LogData> logList, final FileWriter writer) {
+    private static Map<LogData, Integer> generateStatsByMinute(final List<LogData> logList) {
         int counter = 1;
+        final Map<LogData, Integer> tempMap = new LinkedHashMap<>();
         for (int i = 0; i < logList.size(); i++) {
             LogData logEntry = logList.get(i);
             if (i + 1 < logList.size()) {
@@ -114,31 +115,39 @@ final class LogUtils {
                         && currDate.getMinute() == nextDate.getMinute()) {
                     counter++;
                 } else {
-                    writeToFile(writer, counter, logEntry);
+                    tempMap.put(logEntry, counter);
                     counter = 1;
                 }
             } else {
-                writeToFile(writer, counter, logEntry);
+                tempMap.put(logEntry, counter);
             }
         }
-        writer.close();
+        return tempMap;
     }
 
+
     /**
-     * Writes log occurrences in files.
+     * Writes hour stats into file
      *
-     * @param writer   FileWriter storing our data
-     * @param counter  amount of logs in chosen time frame
-     * @param logEntry current log we are iterating through
+     * @param tempMap frequency map
+     * @throws IOException
      */
-    @SneakyThrows
-    private static void writeToFile(final FileWriter writer, final int counter, final LogData logEntry) {
-        final LocalDateTime date = logEntry.getDate();
-        final String displayDate = date.format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT));
-        final String hour = date.format(DateTimeFormatter.ofPattern(Constants.HOUR_FORMAT));
-        final String nextHour = date.plusHours(1).format(DateTimeFormatter.ofPattern(Constants.HOUR_FORMAT));
-        final String data = displayDate + " " + hour + "-" + nextHour + " количество ошибок " + counter + "\n";
-        writer.write(data);
+    private static void writeToFile(Map<LogData, Integer> tempMap, String timeFrameChosen) throws IOException {
+        final FileWriter writer = new FileWriter(Constants.FILE_NAME, true);
+        String pattern =(timeFrameChosen.equals(Constants.MINUTE_PICKER)) ? Constants.MINUTE_FORMAT : Constants.HOUR_FORMAT;
+        for (Map.Entry<LogData, Integer> e : tempMap.entrySet()) {
+            final String displayDate = e.getKey().getDate().format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT));
+            final String timestamp = e.getKey().getDate().format(DateTimeFormatter.ofPattern(pattern));
+            String timestampPlusOne = "";
+            if (timeFrameChosen.equals(Constants.MINUTE_PICKER)) {
+                timestampPlusOne = e.getKey().getDate().plusMinutes(1).format(DateTimeFormatter.ofPattern(pattern));
+            } else if(timeFrameChosen.equals(Constants.HOUR_PICKER)) {
+                timestampPlusOne = e.getKey().getDate().plusHours(1).format(DateTimeFormatter.ofPattern(pattern));
+            }
+            final String data = displayDate + " " + timestamp + "-" + timestampPlusOne + " " + timeFrameChosen + ", количество ошибок " + e.getValue() + "\n";
+            writer.write(data);
+        }
+        writer.close();
     }
 
     /**
@@ -158,7 +167,7 @@ final class LogUtils {
      * @param date log date in string format
      * @return value in LocalDateTime format
      */
-     static LocalDateTime convertDate(final String date) {
+    static LocalDateTime convertDate(final String date) {
         return LocalDateTime.parse(date,
                 DateTimeFormatter.ofPattern(Constants.PARSER_FORMAT));
     }
