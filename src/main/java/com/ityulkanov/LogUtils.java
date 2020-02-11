@@ -70,26 +70,14 @@ final class LogUtils {
      * @param logList raw list of Logs
      * @return frequency map by hour
      */
-    private static Map<LogData, Integer> generateStatsByHour(final List<LogData> logList) {
-        int counter = 1;
-        final Map<LogData, Integer> tempMap = new LinkedHashMap<>();
-        for (int i = 0; i < logList.size(); i++) {
-            LogData logEntry = logList.get(i);
-            if (i + 1 < logList.size()) {
-                LogData nextLogEntry = logList.get(i + 1);
-                final LocalDateTime currDate = logEntry.getDate();
-                final LocalDateTime nextDate = nextLogEntry.getDate();
-                if (currDate.getDayOfYear() == nextDate.getDayOfYear()
-                        && currDate.getHour() == nextDate.getHour()) {
-                    counter++;
-                } else {
-                    tempMap.put(logEntry, counter);
-                    counter = 1;
-                }
-            } else {
-                tempMap.put(logEntry, counter);
-            }
-        }
+    private static Map<LocalDateTime, Integer> generateStatsByHour(final List<LogData> logList) {
+        final Map<LocalDateTime, Integer> tempMap = new LinkedHashMap<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
+        logList.stream().forEach(a -> {
+            LocalDateTime value = LocalDateTime.parse(a.getDate().format(formatter), formatter);
+            int count = tempMap.containsKey(value) ? tempMap.get(value) : 0;
+            tempMap.put(value, count + 1);
+        });
         return tempMap;
     }
 
@@ -100,27 +88,14 @@ final class LogUtils {
      * @param logList raw list of Logs
      * @return frequency map by minute
      */
-    private static Map<LogData, Integer> generateStatsByMinute(final List<LogData> logList) {
-        int counter = 1;
-        final Map<LogData, Integer> tempMap = new LinkedHashMap<>();
-        for (int i = 0; i < logList.size(); i++) {
-            LogData logEntry = logList.get(i);
-            if (i + 1 < logList.size()) {
-                LogData nextLogEntry = logList.get(i + 1);
-                final LocalDateTime currDate = logEntry.getDate();
-                final LocalDateTime nextDate = nextLogEntry.getDate();
-                if (currDate.getDayOfYear() == nextDate.getDayOfYear()
-                        && currDate.getHour() == nextDate.getHour()
-                        && currDate.getMinute() == nextDate.getMinute()) {
-                    counter++;
-                } else {
-                    tempMap.put(logEntry, counter);
-                    counter = 1;
-                }
-            } else {
-                tempMap.put(logEntry, counter);
-            }
-        }
+    private static Map<LocalDateTime, Integer> generateStatsByMinute(final List<LogData> logList) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        final Map<LocalDateTime, Integer> tempMap = new LinkedHashMap<>();
+        logList.stream().forEach(a -> {
+            LocalDateTime value = LocalDateTime.parse(a.getDate().format(formatter), formatter);
+            int count = tempMap.containsKey(value) ? tempMap.get(value) : 0;
+            tempMap.put(value, count + 1);
+        });
         return tempMap;
     }
 
@@ -131,20 +106,20 @@ final class LogUtils {
      * @param tempMap frequency map
      * @throws IOException
      */
-    private static void writeToFile(Map<LogData, Integer> tempMap, String timeFrameChosen) throws IOException {
+    private static void writeToFile(Map<LocalDateTime, Integer> tempMap, String timeFrameChosen) throws IOException {
         final FileWriter writer = new FileWriter(Constants.FILE_NAME, true);
         String pattern = (timeFrameChosen.equals(Constants.MINUTE_PICKER)) ? Constants.MINUTE_FORMAT : Constants.HOUR_FORMAT;
-        for (Map.Entry<LogData, Integer> e : tempMap.entrySet()) {
-            final String displayDate = e.getKey().getDate()
+        for (Map.Entry<LocalDateTime, Integer> e : tempMap.entrySet()) {
+            final String displayDate = e.getKey()
                     .format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT));
-            final String timestamp = e.getKey().getDate()
+            final String timestamp = e.getKey()
                     .format(DateTimeFormatter.ofPattern(pattern));
             String timestampPlusOne = "";
             if (timeFrameChosen.equals(Constants.MINUTE_PICKER)) {
-                timestampPlusOne = e.getKey().getDate().plusMinutes(1)
+                timestampPlusOne = e.getKey().plusMinutes(1)
                         .format(DateTimeFormatter.ofPattern(pattern));
             } else if (timeFrameChosen.equals(Constants.HOUR_PICKER)) {
-                timestampPlusOne = e.getKey().getDate().plusHours(1)
+                timestampPlusOne = e.getKey().plusHours(1)
                         .format(DateTimeFormatter.ofPattern(pattern));
             }
             final String data = displayDate + " "
