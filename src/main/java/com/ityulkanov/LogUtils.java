@@ -1,5 +1,7 @@
 package com.ityulkanov;
 
+import lombok.experimental.UtilityClass;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -12,8 +14,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import lombok.experimental.UtilityClass;
 
 
 /**
@@ -72,13 +72,8 @@ final class LogUtils {
      */
     private static Map<LocalDateTime, Integer> generateStatsByHour(final List<LogData> logList) {
         final Map<LocalDateTime, Integer> tempMap = new LinkedHashMap<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
-        logList.stream().forEach(a -> {
-            LocalDateTime value = LocalDateTime.parse(a.getDate().format(formatter), formatter);
-            int count = tempMap.containsKey(value) ? tempMap.get(value) : 0;
-            tempMap.put(value, count + 1);
-        });
-        return tempMap;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.HOUR_FORMATTER);
+        return getMap(logList, formatter, tempMap);
     }
 
 
@@ -89,11 +84,17 @@ final class LogUtils {
      * @return frequency map by minute
      */
     private static Map<LocalDateTime, Integer> generateStatsByMinute(final List<LogData> logList) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Constants.MINUTE_FORMATTER);
         final Map<LocalDateTime, Integer> tempMap = new LinkedHashMap<>();
-        logList.stream().forEach(a -> {
+        return getMap(logList, formatter, tempMap);
+    }
+
+    private static Map<LocalDateTime, Integer> getMap(List<LogData> logList,
+                                                      DateTimeFormatter formatter,
+                                                      Map<LocalDateTime, Integer> tempMap) {
+        logList.forEach(a -> {
             LocalDateTime value = LocalDateTime.parse(a.getDate().format(formatter), formatter);
-            int count = tempMap.containsKey(value) ? tempMap.get(value) : 0;
+            int count = tempMap.getOrDefault(value, 0);
             tempMap.put(value, count + 1);
         });
         return tempMap;
@@ -106,7 +107,8 @@ final class LogUtils {
      * @param tempMap frequency map
      * @throws IOException
      */
-    private static void writeToFile(Map<LocalDateTime, Integer> tempMap, String timeFrameChosen) throws IOException {
+    private static void writeToFile(Map<LocalDateTime, Integer> tempMap,
+                                    String timeFrameChosen) throws IOException {
         final FileWriter writer = new FileWriter(Constants.FILE_NAME, true);
         String pattern = (timeFrameChosen.equals(Constants.MINUTE_PICKER)) ? Constants.MINUTE_FORMAT : Constants.HOUR_FORMAT;
         for (Map.Entry<LocalDateTime, Integer> e : tempMap.entrySet()) {

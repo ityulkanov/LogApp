@@ -1,6 +1,8 @@
 package com.ityulkanov;
 
 final class Constants {
+    public static final String HOUR_FORMATTER = "yyyy-MM-dd HH";
+    public static final String MINUTE_FORMATTER = "yyyy-MM-dd HH:mm";
     static final String PARSER_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     static String FOLDER_NAME = "logs";
     static String FILE_NAME = "statistics.txt";
