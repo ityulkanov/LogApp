@@ -1,9 +1,9 @@
 package com.ityulkanov;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 /**
  * Holds all the data from single log entry.

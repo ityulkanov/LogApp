@@ -67,7 +67,7 @@ final class LogUtils {
     /**
      * Generates frequency map by hour
      *
-     * @param logList
+     * @param logList raw list of Logs
      * @return frequency map by hour
      */
     private static Map<LogData, Integer> generateStatsByHour(final List<LogData> logList) {
@@ -97,7 +97,7 @@ final class LogUtils {
     /**
      * Generates frequency map by minute
      *
-     * @param logList
+     * @param logList raw list of Logs
      * @return frequency map by minute
      */
     private static Map<LogData, Integer> generateStatsByMinute(final List<LogData> logList) {
@@ -135,15 +135,24 @@ final class LogUtils {
         final FileWriter writer = new FileWriter(Constants.FILE_NAME, true);
         String pattern = (timeFrameChosen.equals(Constants.MINUTE_PICKER)) ? Constants.MINUTE_FORMAT : Constants.HOUR_FORMAT;
         for (Map.Entry<LogData, Integer> e : tempMap.entrySet()) {
-            final String displayDate = e.getKey().getDate().format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT));
-            final String timestamp = e.getKey().getDate().format(DateTimeFormatter.ofPattern(pattern));
+            final String displayDate = e.getKey().getDate()
+                    .format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT));
+            final String timestamp = e.getKey().getDate()
+                    .format(DateTimeFormatter.ofPattern(pattern));
             String timestampPlusOne = "";
             if (timeFrameChosen.equals(Constants.MINUTE_PICKER)) {
-                timestampPlusOne = e.getKey().getDate().plusMinutes(1).format(DateTimeFormatter.ofPattern(pattern));
+                timestampPlusOne = e.getKey().getDate().plusMinutes(1)
+                        .format(DateTimeFormatter.ofPattern(pattern));
             } else if (timeFrameChosen.equals(Constants.HOUR_PICKER)) {
-                timestampPlusOne = e.getKey().getDate().plusHours(1).format(DateTimeFormatter.ofPattern(pattern));
+                timestampPlusOne = e.getKey().getDate().plusHours(1)
+                        .format(DateTimeFormatter.ofPattern(pattern));
             }
-            final String data = displayDate + " " + timestamp + "-" + timestampPlusOne + " " + timeFrameChosen + ", количество ошибок " + e.getValue() + "\n";
+            final String data = displayDate + " "
+                    + timestamp + "-"
+                    + timestampPlusOne
+                    + " "
+                    + timeFrameChosen
+                    + "s, количество ошибок " + e.getValue() + "\n";
             writer.write(data);
         }
         writer.close();
